@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>ChatApp</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+</head>
+<body>
+<div class="body-card card">
+    <div class="card-body">
+        <strong id="register"></strong>
+        <h4 class="card-title text-center">Chat App</h4>
+        <form class="form-inline" id="user-form">
+            <div class="form-group">
+                <input type="text" id="currentUser" placeholder="Write your message" class="form-control mb-2">
+                <button id="start" type="submit" class="btn btn-primary btn-block">Send</button>
+            </div>
+        </form>
+        <div id="messages"></div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function() {
+        let current_user;
+        
+        // Получаем никнейм из cookies
+        $.get('/api/current_user', function(user) {
+            current_user = user;
+            $("#register").html('Welcome, <strong>' + current_user + '</strong>');
+        });
+
+        // Подключение к WebSocket
+        const socket = new WebSocket("ws://127.0.0.1:8000/api/chat");
+
+        socket.onmessage = function(event) {
+            const parsed = JSON.parse(event.data);
+            const sender = parsed.sender;
+            const text = parsed.message;
+            $("#messages").append("<strong>" + sender + ":</strong> " + text + "<br>");
+        };
+
+        // Отправка сообщения
+        $("#user-form").on("submit", function(e) {
+            e.preventDefault();
+            const message = $("#currentUser").val();
+            socket.send(JSON.stringify({ "sender": current_user, "message": message }));
+            $("#currentUser").val(""); // Очистка поля
+        });
+    });
+</script>
+</body>
+</html>

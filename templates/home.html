@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>ChatApp</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <style>
+        /* Центрируем карточку по вертикали и горизонтали */
+        .card {
+            width: 400px;
+            margin: auto;
+            margin-top: 10%;
+            box-shadow: 0px 0px 5px gray;
+        }
+        /* Настройка формы и кнопки */
+        #user-form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        #user-form input {
+            width: 100%;
+        }
+        #user-form button {
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+<div class="chat-body card">
+    <div class="card-body">
+        <h4 class="card-title text-center">Chat App</h4>
+        <form id="user-form" method="POST">
+            <div class="form-group">
+                <input type="text" id="nickname" name="nickname" placeholder="Enter your nickname" class="form-control mb-2" required>
+                <button id="start" type="submit" class="btn btn-primary">Start Chat</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function() {
+        $("#user-form").on("submit", function(e) {
+            e.preventDefault();
+            const nickname = $("#nickname").val();
+            $.post('/api/register', {nickname: nickname}, function(response) {
+                window.location.href = "/chat";
+            });
+        });
+    });
+</script>
+</body>
+</html>
