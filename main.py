@@ -11,13 +11,12 @@ app = FastAPI()
 templates = Jinja2Templates(directory="templates")
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-# Путь к файлу с данными пользователей
 USER_DATA_FILE = "C:\\Users\\Sanek\\Desktop\\Chat_Fast_API\\user_data.json"
 
 class SocketManager:
     def __init__(self):
         self.active_connections: List[(WebSocket, str)] = []
-        self.user_data = self.load_user_data()  # Загружаем данные из JSON при инициализации
+        self.user_data = self.load_user_data()
 
     async def connect(self, websocket: WebSocket, user: str):
         await websocket.accept()
@@ -29,7 +28,7 @@ class SocketManager:
                 "first_appearance": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 "message_count": 0
             }
-            self.save_user_data()  # Сохраняем данные в файл
+            self.save_user_data()
 
     def disconnect(self, websocket: WebSocket):
         self.active_connections = [
@@ -43,7 +42,7 @@ class SocketManager:
     def increment_message_count(self, user: str):
         if user in self.user_data:
             self.user_data[user]["message_count"] += 1
-            self.save_user_data()  # Сохраняем данные в файл
+            self.save_user_data()
 
     def get_user_info(self, user: str):
         if user in self.user_data:
@@ -51,7 +50,6 @@ class SocketManager:
         return None
 
     def load_user_data(self):
-        """Загружаем данные пользователей из JSON-файла."""
         try:
             with open(USER_DATA_FILE, "r") as file:
                 return json.load(file)
@@ -59,7 +57,6 @@ class SocketManager:
             return {}
 
     def save_user_data(self):
-        """Сохраняем данные пользователей в JSON-файл."""
         with open(USER_DATA_FILE, "w") as file:
             json.dump(self.user_data, file, indent=4)
 
