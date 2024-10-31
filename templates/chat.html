@@ -1,10 +1,60 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
     <title>ChatApp</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <style>
+        /* Стили для панели настроек */
+        .settings-panel {
+            width: 200px;
+            position: absolute;
+            right: 20px;
+            top: 20px;
+            box-shadow: 0px 0px 5px gray;
+        }
+
+        /* Основные стили для чата */
+        .body-card {
+            background-color: #fff;
+            color: #000;
+        }
+
+        /* Стили для тёмной темы */
+        .dark-theme {
+            background-color: #333;
+            color: #fff;
+        }
+
+        .dark-theme .card, .dark-theme input, .dark-theme select, .dark-theme button {
+            background-color: #444;
+            color: #fff;
+            border-color: #555;
+        }
+
+        .dark-theme #messages {
+            color: #fff;
+        }
+
+        /* Стили сообщений */
+        .user-message {
+            font-weight: bold;
+        }
+
+        .system-message {
+            color: gray;
+            font-style: italic;
+        }
+
+        /* Стили для аудиоплеера */
+        .audio-player {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            z-index: 1000;
+        }
+    </style>
 </head>
 <body>
 <div class="body-card card">
@@ -21,14 +71,43 @@
     </div>
 </div>
 
+<!-- Панель настроек -->
+<div class="settings-panel card">
+    <div class="card-body">
+        <h5>Настройки чата</h5>
+        <label for="colorPicker">Выбор цвета:</label>
+        <input type="color" id="colorPicker" class="form-control mb-2">
+
+        <label for="fontSize">Размер шрифта:</label>
+        <select id="fontSize" class="form-control mb-2">
+            <option value="small">Маленький</option>
+            <option value="medium" selected>Средний</option>
+            <option value="large">Большой</option>
+        </select>
+
+        <label for="themeToggle">Тема:</label>
+        <select id="themeToggle" class="form-control">
+            <option value="light">Светлая</option>
+            <option value="dark">Тёмная</option>
+        </select>
+    </div>
+</div>
+
+<!-- Аудиоплеер для фоновой музыки -->
+<div class="audio-player">
+    <audio controls autoplay loop>
+        <source src="/static/audio/berserk.mp3" type="audio/mpeg">
+    </audio>
+</div>
+
 <script>
     $(document).ready(function() {
         let current_user;
         
-        // Получаем никнейм из cookies
+        // Получаем никнейм пользователя из cookies
         $.get('/api/current_user', function(user) {
             current_user = user;
-            $("#register").html('Welcome, <strong>' + current_user + '</strong>');
+            $("#register").html('Привет, <strong>' + current_user + '</strong>');
         });
 
         // Подключение к WebSocket
@@ -38,7 +117,15 @@
             const parsed = JSON.parse(event.data);
             const sender = parsed.sender;
             const text = parsed.message;
-            $("#messages").append("<strong>" + sender + ":</strong> " + text + "<br>");
+
+            // Определяем, сообщение пользователя или системы
+            if (sender === "System") {
+                // Сообщение от системы
+                $("#messages").append(`<div class="system-message"><strong>${sender}:</strong> ${text}</div>`);
+            } else {
+                // Сообщение от пользователя
+                $("#messages").append(`<div class="user-message" style="color:${$("#colorPicker").val()}; font-size:${getFontSize()}"><strong>${sender}:</strong> ${text}</div>`);
+            }
         };
 
         // Отправка сообщения
@@ -48,6 +135,28 @@
             socket.send(JSON.stringify({ "sender": current_user, "message": message }));
             $("#currentUser").val(""); // Очистка поля
         });
+
+        // Реальное применение настроек
+        $("#colorPicker").on("input", function() {
+            $("#register strong").css("color", $(this).val());
+        });
+
+        $("#fontSize").on("change", function() {
+            $("#messages .user-message").css("font-size", getFontSize());
+        });
+
+        $("#themeToggle").on("change", function() {
+            if ($(this).val() === "dark") {
+                $("body").addClass("dark-theme");
+            } else {
+                $("body").removeClass("dark-theme");
+            }
+        });
+
+        function getFontSize() {
+            const size = $("#fontSize").val();
+            return size === "small" ? "14px" : size === "medium" ? "16px" : "18px";
+        }
     });
 </script>
 </body>

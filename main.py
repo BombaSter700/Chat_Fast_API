@@ -1,10 +1,13 @@
 from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect, Response, Form
+from fastapi.staticfiles import StaticFiles 
 from fastapi.templating import Jinja2Templates
 from typing import List
-from time_command import TimeCommand # Класс для парсинга времени
+from time_command import TimeCommand
+from weather_command import WeatherCommand 
 
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 class SocketManager:
     def __init__(self):
@@ -26,7 +29,8 @@ class SocketManager:
 manager = SocketManager()
 
 # Инициализируем TimeCommand с путем к драйверу браузера
-_command = TimeCommand(driver_path="C:\\Users\\Sanek\\Desktop\\Chat_Fast_API") #поменять для своего пути
+time_command = TimeCommand(driver_path="C:\\Users\\Sanek\\Desktop\\Chat_Fast_API") #поменять для своего пути
+weather_command = WeatherCommand(driver_path="C:\\Users\\Sanek\\Desktop\\Chat_Fast_API")
 
 async def handle_command(message, sender):
     # Обрабатываем команды
@@ -34,11 +38,11 @@ async def handle_command(message, sender):
         return {"sender": "System", "message": "Доступные команды: /help, /time <город>, /weather <город>"}
 
     elif message.startswith("/time"):
-        time_message = _command.execute_time(message, sender)
+        time_message = time_command.execute_time(message, sender)
         return {"sender": "System", "message": time_message}
     
     elif message.startswith("/weather"):
-        weather_message = _command.execute_weather(message, sender)
+        weather_message = weather_command.execute_weather(message, sender)
         return {"sender": "System", "message": weather_message}
     
     else:
