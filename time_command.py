@@ -8,7 +8,7 @@ class TimeCommand:
         self.driver_path = "C:\\Users\\Sanek\\Desktop\\Chat_Fast_API"
         self.browser = None
 
-    def execute(self, command, username):
+    def execute_time(self, command, username):
         parts = command.split(" ")
         if len(parts) < 2:
             return "Укажите город для получения времени."

@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect, Response, Form
 from fastapi.templating import Jinja2Templates
 from typing import List
-from time_command import TimeCommand  # Импортируем наш класс для парсинга времени
+from time_command import TimeCommand # Класс для парсинга времени
 
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
@@ -14,28 +14,33 @@ class SocketManager:
         await websocket.accept()
         self.active_connections.append((websocket, user))
 
-    def disconnect(self, websocket: WebSocket, user: str):
-        self.active_connections.remove((websocket, user))
+    def disconnect(self, websocket: WebSocket):
+        self.active_connections = [
+            (ws, u) for ws, u in self.active_connections if ws != websocket
+        ]
 
     async def broadcast(self, data):
-        for connection in self.active_connections:
-            await connection[0].send_json(data)
+        for connection, _ in self.active_connections:
+            await connection.send_json(data)
 
 manager = SocketManager()
 
 # Инициализируем TimeCommand с путем к драйверу браузера
-time_command = TimeCommand(driver_path="C:\\Users\\Sanek\\Desktop\\Chat_Fast_API")  # Замените на реальный путь
+_command = TimeCommand(driver_path="C:\\Users\\Sanek\\Desktop\\Chat_Fast_API") #поменять для своего пути
 
 async def handle_command(message, sender):
-    # Команда /help
+    # Обрабатываем команды
     if message.startswith("/help"):
-        return {"sender": "System", "message": "Доступные команды: /help, /time <город>"}
+        return {"sender": "System", "message": "Доступные команды: /help, /time <город>, /weather <город>"}
 
     elif message.startswith("/time"):
-        # Обрабатываем команду /time
-        time_message = time_command.execute(message, sender)
+        time_message = _command.execute_time(message, sender)
         return {"sender": "System", "message": time_message}
-
+    
+    elif message.startswith("/weather"):
+        weather_message = _command.execute_weather(message, sender)
+        return {"sender": "System", "message": weather_message}
+    
     else:
         return {"sender": "System", "message": "Неизвестная команда. Введите /help для списка команд"}
 
@@ -63,9 +68,9 @@ async def chat(websocket: WebSocket):
                     command_response = await handle_command(message, sender)
                     await websocket.send_json(command_response)
                 else:
-                    await manager.broadcast(data)
+                    await manager.broadcast({"sender": sender, "message": message})
         except WebSocketDisconnect:
-            manager.disconnect(websocket, sender)
+            manager.disconnect(websocket)
             await manager.broadcast({"sender": sender, "message": "left the chat"})
 
 @app.get("/")
