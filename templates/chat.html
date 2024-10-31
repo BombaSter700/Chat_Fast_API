@@ -133,10 +133,9 @@
             e.preventDefault();
             const message = $("#currentUser").val();
             socket.send(JSON.stringify({ "sender": current_user, "message": message }));
-            $("#currentUser").val(""); // Очистка поля
+            $("#currentUser").val("");
         });
 
-        // Реальное применение настроек
         $("#colorPicker").on("input", function() {
             $("#register strong").css("color", $(this).val());
         });

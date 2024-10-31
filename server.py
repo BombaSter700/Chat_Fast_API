@@ -8,7 +8,7 @@ from fastapi.staticfiles import StaticFiles
 
 app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
-#connection manager
+
 class SocketManager:
     def __init__(self):
         self.active_connections: List[(WebSocket, str)] = []
